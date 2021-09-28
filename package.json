@@ -19,7 +19,9 @@
   "dependencies": {
     "imap": "^0.8.19",
     "lodash": "^4.17.21",
+    "mailparser": "^3.3.1",
     "pdf-parser": "^1.0.5",
+    "smpp": "^0.6.0-rc.0",
     "util": "^0.12.4"
   }
 }

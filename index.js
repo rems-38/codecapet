@@ -1,16 +1,13 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
 var Imap = require('imap'), inspect = require('util').inspect;
-var pdfParser = require('pdf-parser');  
-const {forEach} = require('lodash');
+var pdfParser = require('pdf-parser');
 
 var imap = new Imap({
-    user: "rem.mazzone@orange.fr",
-    password: "",
-    host: "imap.orange.fr",
-    servername: "imap.orange.fr",
+    user: "your_email",
+    password: "your_password",
+    host: "imap.host.com",
+    servername: "imap.host.com",
     port: 993,
-    tls: true
+    ssl: true
 });
 
 var PDF_PATH = "facture.pdf";
@@ -20,14 +17,18 @@ pdfParser.pdf2json(PDF_PATH, function(err, pdf) {
         console.error(err);
     }
     else {
-        var page0 = pdf["pages"][0];
-
+        var page = pdf["pages"][0]["texts"];
+        page.forEach(function(element){
+            if(element.text.startsWith("Le code")){
+                code = element.text.split(": ");
+                console.log(code[1]);
+            }
+        })
     }
 })
 
 function openInbox(cb){
     imap.openBox('INBOX', true, cb);
-    return
 }
 
 imap.once('ready', function(){
