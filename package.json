@@ -1,0 +1,25 @@
+{
+  "name": "codecapet",
+  "version": "1.0.0",
+  "description": "Permet de récupérer le code des imeubles via le pdf reçu par mail !",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rems-38/codecapet.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rems-38/codecapet/issues"
+  },
+  "homepage": "https://github.com/rems-38/codecapet#readme",
+  "dependencies": {
+    "imap": "^0.8.19",
+    "lodash": "^4.17.21",
+    "pdf-parser": "^1.0.5",
+    "util": "^0.12.4"
+  }
+}
