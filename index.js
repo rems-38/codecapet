@@ -55,7 +55,14 @@ var nextPart = function(result) {
                     else {
                         console.log("Le code n'a pas changé donc pas de mess");
                     }
-                    
+
+                    fs.readdir(__dirname, (err, files) => {
+                        files.forEach(file => {
+                            if(file.endsWith('.pdf')){
+                                fs.rm(file);
+                            }
+                        });
+                    });
                 }
             })
         }
