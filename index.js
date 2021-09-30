@@ -1,14 +1,29 @@
-var Imap = require('imap'), inspect = require('util').inspect;
-var pdfParser = require('pdf-parser');
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
-var imap = new Imap({
-    user: "your_email",
-    password: "your_password",
-    host: "imap.host.com",
-    servername: "imap.host.com",
-    port: 993,
-    ssl: true
-});
+var pdfParser = require('pdf-parser');
+var downloadEmailAttachments = require('download-email-attachments');
+
+var onEnd = function(result) {
+    if(result.error){
+        console.error(result.error);
+        return
+    }
+    console.log("Done");
+    console.log(result.latestTime);
+};
+
+downloadEmailAttachments({
+    account: '"email":"password"@imap.host.com:993',
+    filenameTemplate: 'facture.pdf',
+    filenameFilter: /.pdf?$/,
+    timeout: 3000,
+    since: "2021-09-30",
+    log: {warn: console.warn, debug: console.info, error: console.error, info: console.info},
+    attachmentHandler: function(attachmentData, callback, errorCB){
+        console.log(attachmentData);
+        callback();
+    },
+}, onEnd);
 
 var PDF_PATH = "facture.pdf";
 
@@ -26,50 +41,3 @@ pdfParser.pdf2json(PDF_PATH, function(err, pdf) {
         })
     }
 })
-
-function openInbox(cb){
-    imap.openBox('INBOX', true, cb);
-}
-
-imap.once('ready', function(){
-    openInbox(function(err, box){
-        if(err) throw err;
-        imap.search([['FROM', 'ne-pas-repondre@cap-etudes.com']], function(err, results){
-            if(err) throw err;
-            var f = imap.fetch(results, {bodies: ''});
-            f.once('message', function(msg, seqno){
-                console.log("Message #%d", seqno);
-                var prefix = '(#' + seqno + ')';
-                msg.on('body', function(stream, info){
-                    var buffer = '';
-                    stream.on('data', function(chunk){
-                        buffer += chunk.toString('utf-8');
-                    });
-                    stream.once('end', function() {
-                        console.log(prefix + 'Parse header : %s', inspect(Imap.parseHeader(buffer)));
-                    });
-                });
-                msg.once('end', function(){
-                    console.log(prefix + 'Finished');
-                });
-            });
-            f.once('error', function(err){
-                console.error('Fetch error : ' + err);
-            });
-            f.once('end', function(){
-                console.log('Done fetching all messages');
-                imap.end();
-            });
-        });
-    });
-});
-
-imap.once('error', function(err){
-    console.error(err);
-});
-
-imap.once('end', function(){
-    console.log('Connection ended');
-});
-
-imap.connect();

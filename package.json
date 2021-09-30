@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/rems-38/codecapet#readme",
   "dependencies": {
+    "download-email-attachments": "^2.0.1",
     "imap": "^0.8.19",
     "lodash": "^4.17.21",
     "mailparser": "^3.3.1",
