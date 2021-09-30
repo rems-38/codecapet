@@ -133,7 +133,7 @@ client.on('ready', async() => {
 client.login(config.tokenBotDiscord);
 
 // Constante pour lancer le programme (via la fonction dlPdf() qui commence le programme) tous les jours à 00h00
-const job = schedule.scheduleJob({hour: 23, minute: 36}, () => {
+const job = schedule.scheduleJob({hour: 00, minute: 00}, () => {
     dlPdf();
 });
 
