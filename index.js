@@ -3,6 +3,8 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 var pdfParser = require('pdf-parser');
 var downloadEmailAttachments = require('download-email-attachments');
 
+var config = require('./config.json');
+
 var onEnd = function(result) {
     if(result.error){
         console.error(result.error);
@@ -13,7 +15,7 @@ var onEnd = function(result) {
 };
 
 downloadEmailAttachments({
-    account: '"email":"password"@imap.host.com:993',
+    account: `"${config.email}":"${config.password}"@${config.host}:${config.port}`,
     filenameTemplate: 'facture.pdf',
     filenameFilter: /.pdf?$/,
     timeout: 3000,

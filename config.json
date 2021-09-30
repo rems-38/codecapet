@@ -1,0 +1,6 @@
+{
+    "email": "your_email_adress",
+    "password": "your_password",
+    "host": "adress_of_imap_server_of_your_email_host",
+    "port": 993
+}
