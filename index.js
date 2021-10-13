@@ -14,6 +14,13 @@ const schedule = require('node-schedule');
 // Importation du fichier de configuration
 const config = require('./config.json');
 
+
+// Fonction qui envoie un message Discord le jour où le code change
+function codeChangeMessage(code){
+    // On envoie donc un message comme quoi le code à désormais changé, et on rappel quel est le nouveau code
+    userDiscord.send("C'est aujourd'hui que le code change ! (rappel, c'est donc " + code[0]);
+};
+
 // /!\ Suite du programme, ça s'exécute après dlPdf()
 var nextPart = function(result) {
     // On vérifie qu'on sort de dlPdf() sans erreur
@@ -47,7 +54,12 @@ var nextPart = function(result) {
                     const configData = JSON.parse(fs.readFileSync('./config.json'));
 
                     // On met en forme la ligne pour avoir juste le code (et pas le texte avant)
-                    preCode = element.text.split(": ");
+                    phrase = element.text;
+
+                    preDate = phrase.split('/');
+                    date = [preDate[0].slice(-2), preDate[1], preDate[2].slice(0, 4)];
+                    
+                    preCode = pharse.split(': ');
                     code = preCode[1].split(' ');
                     console.log("Le code est : " + code[0]);
 
@@ -62,6 +74,13 @@ var nextPart = function(result) {
                         
                         // On envoie donc la phrase complète avec le code (choix personnel) en mp Discord (c'est le bot qui nous envoi le message) 
                         userDiscord.send(element.text);
+
+                        // Constante qui attends le jour où le code change pour envoyer l'info sur Discord
+                        const waitDateCodeChange = schedule.scheduleJob({date: date[0], month: date[1] - 1, year: date[2]}, () => {
+                            codeChangeMessage(code);
+                        });
+                        // On appelle la constante pour attendre le jour où le code change
+                        waitDateCodeChange;
                     }
                     else {
                         console.log("Le code n'a pas changé donc pas de mess");
