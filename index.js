@@ -18,7 +18,8 @@ const config = require('./config.json');
 // Fonction qui envoie un message Discord le jour où le code change
 function codeChangeMessage(code){
     // On envoie donc un message comme quoi le code à désormais changé, et on rappel quel est le nouveau code
-    userDiscord.send("C'est aujourd'hui que le code change ! (rappel, c'est donc " + code[0]);
+    console.log("Envoi msg jour même");
+    userDiscord.send("C'est aujourd'hui que le code change ! (rappel, c'est donc " + code[0] + ")");
 };
 
 // /!\ Suite du programme, ça s'exécute après dlPdf()
@@ -34,74 +35,89 @@ var nextPart = function(result) {
     // On importe la configuration courante (sachant qu'on vient de la modifier dans dlPdf(), utiliser l'importation de la l15 ne fonctionne pas car elle a encore l'ancienne valeur en mémoire)
     const configData = JSON.parse(fs.readFileSync('./config.json'));
 
-    // Variable qui contient le nom du PDF qu'on veut parser, c'est le dernier de la liste, qui est bien un PDF de la facture de Cap'Etudes
-    var PDF_PATH = `${configData.lastFactureName}`;
+    // Si il n'y a pas de facture dans les mails fecth ("empty" dans la conf) alors on fait rien de plus
+    if(configData.lastFactureName != "empty") {
+        // Variable qui contient le nom du PDF qu'on veut parser, c'est le dernier de la liste, qui est bien un PDF de la facture de Cap'Etudes
+        var PDF_PATH = `${configData.lastFactureName}`;
 
-    // Fonction pour parser le fichier PDF
-    pdfParser.pdf2json(PDF_PATH, function(err, pdf) {
-        // On vérifie qu'on a pas d'erreur
-        if(err != null){
-            console.error(err);
-        }
-        else {
-            // On récupère toutes les chaines de caractères de la page du PDF
-            var page = pdf["pages"][0]["texts"];
+        // Fonction pour parser le fichier PDF
+        pdfParser.pdf2json(PDF_PATH, function(err, pdf) {
+            // On vérifie qu'on a pas d'erreur
+            if(err != null){
+                console.error(err);
+            }
+            else {
+                // On récupère toutes les chaines de caractères de la page du PDF
+                var page = pdf["pages"][0]["texts"];
 
-            // On fait une boucle pour trouver le bon élement (la ligne qui contient le code)
-            page.forEach(element => {
-                if(element.text.startsWith("Le code")){
-                    // On réimporte la configuration courante car elle n'est pas définie dans cette fonction (elle est définie plus haut)
-                    const configData = JSON.parse(fs.readFileSync('./config.json'));
+                // On fait une boucle pour trouver le bon élement (la ligne qui contient le code)
+                page.forEach(element => {
+                    if(element.text.startsWith("Le code")){
+                        // On réimporte la configuration courante car elle n'est pas définie dans cette fonction (elle est définie plus haut)
+                        const configData = JSON.parse(fs.readFileSync('./config.json'));
 
-                    // On met en forme la ligne pour avoir juste le code (et pas le texte avant)
-                    phrase = element.text;
-
-                    preDate = phrase.split('/');
-                    date = [preDate[0].slice(-2), preDate[1], preDate[2].slice(0, 4)];
+                        // On met en forme la ligne pour avoir juste le code (et pas le texte avant)
+                        phrase = element.text;
                     
-                    preCode = pharse.split(': ');
-                    code = preCode[1].split(' ');
-                    console.log("Le code est : " + code[0]);
+                        preDate = phrase.split('/');
+                        date = [preDate[0].slice(-2), preDate[1], preDate[2].slice(0, 4)];
 
-                    // Si le code a changé par rapport au jour précédent (si on a reçu un nouveau mail)
-                    if(code[0] != configData.lastCode){
-                        // On change la valeur du code dans la configuration par la valeur du nouveau code 
-                        configData.lastCode = code[0];
-                        // Et on l'enregistre dans la fichier json
-                        fs.writeFileSync('./config.json', JSON.stringify(configData, null, 4));
+                        preCode = phrase.split(': ');
+                        code = preCode[1].split(' ');
+                        console.log("Le code est : " + code[0]);
 
-                        console.log("Nouveau msg Discord avec le code");
-                        
-                        // On envoie donc la phrase complète avec le code (choix personnel) en mp Discord (c'est le bot qui nous envoi le message) 
-                        userDiscord.send(element.text);
+                        // Si le code a changé par rapport au jour précédent (si on a reçu un nouveau mail)
+                        if(code[0] != configData.lastCode){
+                            // On change la valeur du code dans la configuration par la valeur du nouveau code 
+                            configData.lastCode = code[0];
+                            // Et on l'enregistre dans la fichier json
+                            fs.writeFileSync('./config.json', JSON.stringify(configData, null, 4));
 
-                        // Constante qui attends le jour où le code change pour envoyer l'info sur Discord
-                        const waitDateCodeChange = schedule.scheduleJob({date: date[0], month: date[1] - 1, year: date[2]}, () => {
-                            codeChangeMessage(code);
+                            console.log("Nouveau msg Discord avec le code");
+                            
+                            // On envoie donc la phrase complète avec le code (choix personnel) en mp Discord (c'est le bot qui nous envoi le message) 
+                            userDiscord.send(element.text);
+
+                            // Constante qui attends le jour où le code change pour envoyer l'info sur Discord
+                            const waitDateCodeChange = schedule.scheduleJob({date: date[0], month: date[1] - 1, year: date[2], hour: 07, minute: 00}, () => {
+                                codeChangeMessage(code);
+                            });
+
+                            console.log("Set schedule pour Jour J");
+
+                            // On appelle la constante pour attendre le jour où le code change
+                            waitDateCodeChange;
+                        }
+                        else {
+                            console.log("Le code n'a pas changé donc pas de mess");
+                        }
+
+                        // On supprime les fichiers PDF qu'on a téléchargé pour qu'il retélécharge bien tout la prochaine fois (et qu'il n'y ait pas d'erreur/de conflit)
+                        fs.readdir(__dirname, (err, files) => {
+                            files.forEach(file => {
+                                if(file.endsWith('.pdf')){
+                                    fs.unlinkSync(file);
+                                }
+                            });
                         });
-                        // On appelle la constante pour attendre le jour où le code change
-                        waitDateCodeChange;
                     }
-                    else {
-                        console.log("Le code n'a pas changé donc pas de mess");
-                    }
+                })
+            }
+        })
 
-                    // On supprime les fichiers PDF qu'on a téléchargé pour qu'il retélécharge bien tout la prochaine fois (et qu'il n'y ait pas d'erreur/de conflit)
-                    fs.readdir(__dirname, (err, files) => {
-                        files.forEach(file => {
-                            if(file.endsWith('.pdf')){
-                                fs.unlinkSync(file);
-                            }
-                        });
-                    });
-                }
-            })
-        }
-    })
+    }
 };
 
 // Fonction qui download tous les PDF reçus
 function dlPdf(){
+    // Par "défaut" on set le nom à "empty" si ya pas du tout de pdf ou si c'est pas une facture de Capet
+    const configData = JSON.parse(fs.readFileSync('./config.json'));
+    configData.lastFactureName = "empty";
+    fs.writeFileSync('./config.json', JSON.stringify(configData, null, 4));
+
+    const preDate = new Date();
+    const date = preDate.getFullYear() + "-" + (preDate.getMonth() + 1) + "-" + (preDate.getDate() - 3);
+
     downloadEmailAttachments({
         // On configure le compte avec les infos présentes dans la config 
         account: `"${config.email}":"${config.password}"@${config.host}:${config.port}`,
@@ -110,8 +126,8 @@ function dlPdf(){
         // On filtre les pièces jointes des emails pour ne télécharger que les PDF
         filenameFilter: /.pdf?$/,
         timeout: 3000,
-        // On définit une date de base
-        since: "2021-09-27",
+        // On mets la date à 3 jours avant le jour courant
+        since: date,
         log: {warn: console.warn, debug: console.debug, error: console.error, info: console.info},
         attachmentHandler: function(attachmentData, callback){
             console.log(attachmentData);
@@ -135,6 +151,7 @@ function dlPdf(){
             
             callback();
         },
+
     // On appelle nextPart (présent au début du code) pour passer à la suite une fois que cette fonction a finit de s'exécuter, sinon le reste s'exécute en parallèle et ça pose problème car on n'a pas encore de fichier PDF à parser, car ils n'ont pas encore été téléchargés
     }, nextPart);
 };
