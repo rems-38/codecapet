@@ -3,7 +3,7 @@
     "password": "your_password",
     "host": "adress_of_imap_server_of_your_email_host",
     "port": 993,
-    "lastFactureName": "empty",
+    "lastFactureName": None,
     "lastCode": "",
     "tokenBotDiscord": "le_token_de_votre_bot_discord",
     "discordUserID": "id_de_votre_utilisateur_discord"
