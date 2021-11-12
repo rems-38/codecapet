@@ -124,7 +124,7 @@ function dlPdf(){
         // On enregistre le fichier sous le format 1-nom_pdf_1, puis 2-nom_pdf_2, etc
         filenameTemplate: '{nr}-{filename}',
         // On filtre les pièces jointes des emails pour ne télécharger que les PDF
-        filenameFilter: /.pdf?$/,
+        filenameFilter: /^Facture_N_F[0-9_]+.pdf$/,
         timeout: 3000,
         // On mets la date à 3 jours avant le jour courant
         since: date,
