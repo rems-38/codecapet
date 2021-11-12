@@ -21,9 +21,15 @@ function codeChangeMessage(code){
     console.log("Envoi msg jour même");
     userDiscord.send("C'est aujourd'hui que le code change ! (rappel, c'est donc " + code[0] + ")");
 };
+const get_config=()=>{
+    return JSON.parse(fs.readFileSync('./config.json'));
+}
+const save_config=(configData)=>{
+    fs.writeFileSync('./config.json', JSON.stringify(configData, null, 4));
+}
 
 // /!\ Suite du programme, ça s'exécute après dlPdf()
-var nextPart = function(result) {
+const nextPart = function(result) {
     // On vérifie qu'on sort de dlPdf() sans erreur
     if(result.error){
         console.error(result.error);
@@ -33,12 +39,12 @@ var nextPart = function(result) {
     console.log(result.latestTime);
 
     // On importe la configuration courante (sachant qu'on vient de la modifier dans dlPdf(), utiliser l'importation de la l15 ne fonctionne pas car elle a encore l'ancienne valeur en mémoire)
-    const configData = JSON.parse(fs.readFileSync('./config.json'));
+    const configData = get_config();
 
     // Si il n'y a pas de facture dans les mails fecth ("empty" dans la conf) alors on fait rien de plus
     if(configData.lastFactureName != "empty") {
         // Variable qui contient le nom du PDF qu'on veut parser, c'est le dernier de la liste, qui est bien un PDF de la facture de Cap'Etudes
-        var PDF_PATH = `${configData.lastFactureName}`;
+        const PDF_PATH = `${configData.lastFactureName}`;
 
         // Fonction pour parser le fichier PDF
         pdfParser.pdf2json(PDF_PATH, function(err, pdf) {
@@ -48,13 +54,13 @@ var nextPart = function(result) {
             }
             else {
                 // On récupère toutes les chaines de caractères de la page du PDF
-                var page = pdf["pages"][0]["texts"];
+                const page = pdf["pages"][0]["texts"];
 
                 // On fait une boucle pour trouver le bon élement (la ligne qui contient le code)
                 page.forEach(element => {
                     if(element.text.startsWith("Le code")){
                         // On réimporte la configuration courante car elle n'est pas définie dans cette fonction (elle est définie plus haut)
-                        const configData = JSON.parse(fs.readFileSync('./config.json'));
+                        const configData = get_config();
 
                         // On met en forme la ligne pour avoir juste le code (et pas le texte avant)
                         phrase = element.text;
@@ -71,7 +77,7 @@ var nextPart = function(result) {
                             // On change la valeur du code dans la configuration par la valeur du nouveau code 
                             configData.lastCode = code[0];
                             // Et on l'enregistre dans la fichier json
-                            fs.writeFileSync('./config.json', JSON.stringify(configData, null, 4));
+                            save_config(configData);
 
                             console.log("Nouveau msg Discord avec le code");
                             
@@ -111,12 +117,13 @@ var nextPart = function(result) {
 // Fonction qui download tous les PDF reçus
 function dlPdf(){
     // Par "défaut" on set le nom à "empty" si ya pas du tout de pdf ou si c'est pas une facture de Capet
-    const configData = JSON.parse(fs.readFileSync('./config.json'));
+    const configData = get_config();
     configData.lastFactureName = "empty";
-    fs.writeFileSync('./config.json', JSON.stringify(configData, null, 4));
+    save_config(configData);
 
-    const preDate = new Date();
-    const date = preDate.getFullYear() + "-" + (preDate.getMonth() + 1) + "-" + (preDate.getDate() - 3);
+    var preDate = new Date();
+    preDate.setDate(preDate.getDate()-3);
+    const date = preDate.format('YYYY-MM-DD');
 
     downloadEmailAttachments({
         // On configure le compte avec les infos présentes dans la config 
@@ -146,7 +153,7 @@ function dlPdf(){
                 // On change la valeur du nom de la facture dans la configuration et on le remplace pour notre nouveau nom de fichier 
                 configData.lastFactureName = fullFactureName;
                 // On enregistre le fichier json
-                fs.writeFileSync('./config.json', JSON.stringify(configData, null, 4));
+                save_config(configData);
             }
             
             callback();
