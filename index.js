@@ -41,8 +41,8 @@ const nextPart = function(result) {
     // On importe la configuration courante (sachant qu'on vient de la modifier dans dlPdf(), utiliser l'importation de la l15 ne fonctionne pas car elle a encore l'ancienne valeur en mémoire)
     const configData = get_config();
 
-    // Si il n'y a pas de facture dans les mails fecth ("empty" dans la conf) alors on fait rien de plus
-    if(configData.lastFactureName != "empty") {
+    // Si il n'y a pas de facture dans les mails fecth (None dans la conf) alors on fait rien de plus
+    if(configData.lastFactureName != None) {
         // Variable qui contient le nom du PDF qu'on veut parser, c'est le dernier de la liste, qui est bien un PDF de la facture de Cap'Etudes
         const PDF_PATH = configData.lastFactureName;
 
@@ -116,9 +116,9 @@ const nextPart = function(result) {
 
 // Fonction qui download tous les PDF reçus
 function dlPdf(){
-    // Par "défaut" on set le nom à "empty" si ya pas du tout de pdf ou si c'est pas une facture de Capet
+    // Par "défaut" on set le nom à None si ya pas du tout de pdf ou si c'est pas une facture de Capet
     const configData = get_config();
-    configData.lastFactureName = "empty";
+    configData.lastFactureName = None;
     save_config(configData);
 
     var preDate = new Date();
