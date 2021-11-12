@@ -121,9 +121,8 @@ function dlPdf(){
     configData.lastFactureName = null;
     save_config(configData);
 
-    var preDate = new Date();
-    preDate.setDate(preDate.getDate()-3);// on retire 3jours
-    const date = preDate.format('YYYY-MM-DD');
+    const preDate = new Date();
+    const date = preDate.getFullYear() + "-" + (preDate.getMonth() + 1) + "-" + (preDate.getDate() - 3);
 
     downloadEmailAttachments({
         // On configure le compte avec les infos présentes dans la config 
