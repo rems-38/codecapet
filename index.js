@@ -122,7 +122,8 @@ function dlPdf(){
     save_config(configData);
 
     const preDate = new Date();
-    const date = preDate.getFullYear() + "-" + (preDate.getMonth() + 1) + "-" + (preDate.getDate() - 3);
+    preDate.setDate(preDate.getDate()-3);// on retire 30jours
+    const date = preDate.getFullYear() + "-" + (preDate.getMonth() + 1) + "-" + preDate.getDate();
 
     downloadEmailAttachments({
         // On configure le compte avec les infos présentes dans la config 
