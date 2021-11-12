@@ -44,7 +44,7 @@ const nextPart = function(result) {
     // Si il n'y a pas de facture dans les mails fecth ("empty" dans la conf) alors on fait rien de plus
     if(configData.lastFactureName != "empty") {
         // Variable qui contient le nom du PDF qu'on veut parser, c'est le dernier de la liste, qui est bien un PDF de la facture de Cap'Etudes
-        const PDF_PATH = `${configData.lastFactureName}`;
+        const PDF_PATH = configData.lastFactureName;
 
         // Fonction pour parser le fichier PDF
         pdfParser.pdf2json(PDF_PATH, function(err, pdf) {
@@ -122,7 +122,7 @@ function dlPdf(){
     save_config(configData);
 
     var preDate = new Date();
-    preDate.setDate(preDate.getDate()-3);
+    preDate.setDate(preDate.getDate()-3);// on retire 3jours
     const date = preDate.format('YYYY-MM-DD');
 
     downloadEmailAttachments({
@@ -147,15 +147,10 @@ function dlPdf(){
             listFactureName = fullFactureName.split('-');
             // On met uniquement le nom du PDF dans une variable
             factureName = listFactureName[1];
-
-            // Ce qui permet de vérifier que le fichier en question commence bien par "Facture" (avec l'id on n'aurait pas pu c'est pour cela qu'on l'enlève avec les 3 lignes au-dessus)
-            if(factureName.startsWith("Facture")){
-                // On change la valeur du nom de la facture dans la configuration et on le remplace pour notre nouveau nom de fichier 
-                configData.lastFactureName = fullFactureName;
-                // On enregistre le fichier json
-                save_config(configData);
-            }
-            
+            // On change la valeur du nom de la facture dans la configuration et on le remplace pour notre nouveau nom de fichier 
+            configData.lastFactureName = fullFactureName;
+            // On enregistre le fichier json
+            save_config(configData);
             callback();
         },
 
